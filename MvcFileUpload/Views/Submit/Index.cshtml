@@ -1,0 +1,54 @@
+﻿
+@using MvcFileUpload.Services;
+
+@section styles
+{
+    <style type="text/css">
+        .indent1 { margin-left: 20px; }
+        .indent2 { margin-left: 40px; }
+        .indent3 { margin-left: 60px; }
+    </style>
+}
+
+@{
+    ViewBag.Title = "Submit.Index";
+}
+
+<h2>Submit.Index</h2>
+
+@using (Html.BeginForm("Upload", "Submit", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <input type="file" id="id-files" name="files" multiple="multiple" />
+    <input type="submit" />
+}
+
+@if (ViewBag.Result != null)
+{
+    <p>ファイルのアップロードを実行しました。</p>
+    
+    FileUploadService.ArgumentObject args = ViewBag.Argument;
+    <span>MIME タイプ フィルター</span><br />
+    <span class="indent1">許可：@( string.Join(";", args.AllowMimeTypeFilter.ToArray()))</span><br />
+    <span class="indent1">禁止：@( string.Join(";", args.DenyMimeTypeFilter.ToArray()))</span><br />
+
+    FileUploadService.ResultObject result = ViewBag.Result;
+    <span>アップロードの許可状態：@( result.AllowFileUpload ? "許可" : "禁止") </span><br />
+    <span>アップロード フォルダー：@( result.UploadingDirectory.FullName) </span><br />
+    <span>アップロード フォルダーの存在：@( result.UploadingDirectory.Exists ? "あり" : "なし") </span><br />
+    <span>アップロード ファイル数：@( result.Files.Count().ToString()) </span><br />
+    <span>アップロードに成功したファイル数：@( result.Select(file => file.UploadedFile.Exists).Count().ToString())</span><br />
+    foreach (FileUploadService.ResultFileObject file in result.Files)
+    {
+        <span class="indent1">クライアント ファイル名：@( System.IO.Path.GetFileName(file.PostedFile.FileName))</span><br />
+        <span class="indent2">出力結果：@( file.UploadedFile.Exists ? "成功" : "失敗")</span><br />
+        <span class="indent2">MIME タイプ フィルター：@( file.IsValidMimeType ? "許可" : "拒否")</span><br />
+        if (file.UploadedFile.Exists)
+        {
+            <span class="indent3">テンポラリ ファイル名：@( file.AdditionalProperties.TemporaryFileName)</span><br />
+            <span class="indent3">正式ファイル名：@( System.IO.Path.GetFileName(file.UploadedFile.Name))</span><br />
+
+        }
+    }
+}
+
+
